@@ -1,0 +1,3 @@
+- Detectar se ganhou
+- Ficar tentando atualizar
+- Frontend
