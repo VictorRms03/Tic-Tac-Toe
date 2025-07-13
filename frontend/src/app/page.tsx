@@ -5,8 +5,9 @@ import { useState } from 'react';
 export default function Home() {
 
   const [board, setBoard] = useState<any>(new Map());
-  const [actualPlayer, setActualPlayer] = useState(null);
-  const [myPlayer, setMyPlayer] = useState(null);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
+  const [myPlayerSymbol, setMyPlayerSymbol] = useState(null);
+  const [gameId, setGameId] = useState<string | null>(null);
 
   const socket = new WebSocket("ws://localhost:3001");
 
@@ -16,23 +17,26 @@ export default function Home() {
 
     if (data.type === "createGameResponse") {
 
+      setGameId(data.gameId);
+      setMyPlayerSymbol(data.myPlayerSymbol);
+      setCurrentPlayer(data.currentPlayer);
       setBoard(new Map(Object.entries(data.board)));
-      setActualPlayer(data.actualPlayer);
-      setMyPlayer(data.myPlayer);
 
     } else if (data.type === "joinGameResponse") {
 
-      setBoard(new Map(Object.entries(data.board)));
-      setActualPlayer(data.actualPlayer);
-      setMyPlayer(data.myPlayer);
+      const updatedBoard = new Map( Object.entries(data.board).map( ([id, content]) => [Number(id), content] ) );
 
+      setGameId(data.gameId);
+      setMyPlayerSymbol(data.myPlayerSymbol);
+      setCurrentPlayer(data.currentPlayer);
+      setBoard(updatedBoard);
+      
     } if (data.type === "doRoundResponse") {
 
       const updatedBoard = new Map( Object.entries(data.board).map( ([id, content]) => [Number(id), content] ) );
 
+      setCurrentPlayer(data.currentPlayer);
       setBoard(updatedBoard);
-      setActualPlayer(data.actualPlayer);
-
       data.isWin && finishGame();
 
     }
@@ -45,23 +49,29 @@ export default function Home() {
     }));
   }
 
-  function joinGame() {
+  function joinGame(e: React.FormEvent<HTMLFormElement>) {
+
+    e.preventDefault();
+
     socket.send( JSON.stringify( {
       type:"joinGame",
+      gameId:gameId
     }));
+    
   }
 
   function doRound(idTarget:number) {
     socket.send( JSON.stringify( {
       type:"doRound",
-      target:idTarget
+      target:idTarget,
+      gameId:gameId
     }));
   }
 
   function renderButton(id: number) {
 
     return (
-      <button id={id.toString()} onClick={() => doRound(id)} disabled={ ( board.get(id)?.content || actualPlayer !== myPlayer ) }>
+      <button id={id.toString()} onClick={() => doRound(id)} disabled={ ( board.get(id)?.content || currentPlayer !== myPlayerSymbol ) }>
         {board.get(id)?.content || ' '}
       </button>
     );
@@ -69,24 +79,38 @@ export default function Home() {
   }
 
   function finishGame() {
-    window.alert( "Parabêns, " + actualPlayer + " Ganhou!");
+    window.alert( "Parabêns, " + currentPlayer + " Ganhou!");
   }
 
   return (
     
     <>
 
-    <h2>Jogador: {actualPlayer}</h2>
+    <h2>Jogador: {currentPlayer}</h2>
 
-    <h2>Eu sou: {myPlayer}</h2>
+    <h2>Eu sou: {myPlayerSymbol}</h2>
+
+    <h2>ID do jogo: {gameId}</h2>
 
     <button onClick={createGame}>Criar Jogo</button>
 
-    <button onClick={joinGame}>Entrar no jogo</button>
+    <br />
 
-    <div>{renderButton(0)} {renderButton(1)} {renderButton(2)}</div>
-    <div>{renderButton(3)} {renderButton(4)} {renderButton(5)}</div>
-    <div>{renderButton(6)} {renderButton(7)} {renderButton(8)}</div>
+    <form onSubmit={joinGame}>
+      <input
+        type="text"
+        name="gameId"
+        id="gameId"
+        onChange={(e) => setGameId(e.target.value)}
+      />
+      <button type="submit">Entrar no jogo</button>
+    </form>
+
+    {/*<input type="text" name="gameId" id="gameId" /> <button onClick={joinGame}>Entrar no jogo</button>*/}
+
+    <div>{ renderButton(0) } { renderButton(1) } { renderButton(2) }</div>
+    <div>{ renderButton(3) } { renderButton(4) } { renderButton(5) }</div>
+    <div>{ renderButton(6) } { renderButton(7) } { renderButton(8) }</div>
       
     </>
   );

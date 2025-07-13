@@ -1,3 +1,1 @@
-- Ficar tentando atualizar
-- Suportar multiplos jogos
 - Frontend

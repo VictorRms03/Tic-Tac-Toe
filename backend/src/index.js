@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const WebSocket = require('ws');
+const { v4: uuidv4 } = require("uuid");
+const { create } = require('domain');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,88 +14,92 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-let player1 = null;
-let actualPlayer = null;
-const board = new Map([
-    [0, { content: null }],
-    [1, { content: null }],
-    [2, { content: null }],
-    [3, { content: null }],
-    [4, { content: null }],
-    [5, { content: null }],
-    [6, { content: null }],
-    [7, { content: null }],
-    [8, { content: null }]
-]);
+const games = {};
 
-function switchPlayer() {
-    actualPlayer = (actualPlayer === 'X' ? 'O' : 'X');
+function createEmptyBoard() {
+
+    return new Map([
+        [0, { content: null }],
+        [1, { content: null }],
+        [2, { content: null }],
+        [3, { content: null }],
+        [4, { content: null }],
+        [5, { content: null }],
+        [6, { content: null }],
+        [7, { content: null }],
+        [8, { content: null }]
+    ]);
 }
 
-function verifyWin( idLastTarget ) {
+function switchPlayer(currentPlayer) {
+    return currentPlayer === 'X' ? 'O' : 'X';
+}
+
+function verifyWin( board, idLastTarget ) {
 
     const cell = board.get(idLastTarget);
-    let isWin = false
 
     // Verifica Coluna
-    if ( !isWin && (idLastTarget == 0 || idLastTarget == 1 || idLastTarget == 2) ) {
+    if ( idLastTarget == 0 || idLastTarget == 1 || idLastTarget == 2 ) {
 
         if ( cell.content == board.get(idLastTarget+3).content && cell.content == board.get(idLastTarget+6).content ) {
-            isWin = true;
+            return true;
         }
 
-    } else if ( !isWin && (idLastTarget == 3 || idLastTarget == 4 || idLastTarget == 5) ) {
+    } else if ( idLastTarget == 3 || idLastTarget == 4 || idLastTarget == 5 ) {
 
         if ( cell.content == board.get(idLastTarget+3).content && cell.content == board.get(idLastTarget-3).content ) {
-            isWin = true;
+            return true;
         }
 
-    } else if ( !isWin && (idLastTarget == 6 || idLastTarget == 7 || idLastTarget == 8) ) {
+    } else if ( idLastTarget == 6 || idLastTarget == 7 || idLastTarget == 8 ) {
 
         if ( cell.content == board.get(idLastTarget-3).content && cell.content == board.get(idLastTarget-6).content ) {
-            isWin = true;
+            return true;
         }
 
     }
 
     // Verifica Linha
-    if ( !isWin && (idLastTarget == 0 || idLastTarget == 3 || idLastTarget == 6) ) {
+    if ( idLastTarget == 0 || idLastTarget == 3 || idLastTarget == 6 ) {
 
         if ( cell.content == board.get(idLastTarget+1).content && cell.content == board.get(idLastTarget+2).content ) {
-            isWin = true;
+            return true;
         }
 
-    } else if ( !isWin && (idLastTarget == 1 || idLastTarget == 4 || idLastTarget == 7) ) {
+    } else if ( idLastTarget == 1 || idLastTarget == 4 || idLastTarget == 7 ) {
 
         if ( cell.content == board.get(idLastTarget+1).content && cell.content == board.get(idLastTarget-1).content ) {
-            isWin = true;
+            return true;
         }
 
-    } else if ( !isWin && (idLastTarget == 2 || idLastTarget == 5 || idLastTarget == 8) ) {
+    } else if ( idLastTarget == 2 || idLastTarget == 5 || idLastTarget == 8 ) {
 
         if ( cell.content == board.get(idLastTarget-1).content && cell.content == board.get(idLastTarget-2).content ) {
-            isWin = true;
+            return true;
         }
 
     }
 
-    // Verifica Diagonais
-
-    if ( !isWin && (idLastTarget == 2 || idLastTarget == 4 || idLastTarget == 6) ) {
+    // Verifica Diagonal /
+    if ( idLastTarget == 2 || idLastTarget == 4 || idLastTarget == 6 ) {
 
         if ( board.get(2).content == board.get(4).content && board.get(2).content == board.get(6).content ) {
-            isWin = true;
+            return true;
         }
 
-    } else if ( !isWin && (idLastTarget == 0 || idLastTarget == 4 || idLastTarget == 8) ) {
+    }
+    
+    // Verifica Diagonal \
+    if ( idLastTarget == 0 || idLastTarget == 4 || idLastTarget == 8 ) {
 
         if ( board.get(0).content == board.get(4).content && board.get(0).content == board.get(8).content ) {
-            isWin = true;
+            return true;
         }
 
     }
 
-    return isWin;
+    return false;
 
 }
 
@@ -105,40 +111,68 @@ wss.on("connection", (ws) => {
 
         if ( data.type === "createGame" ) {
 
-            player1 = ( ( Math.floor( Math.random()*2 ) + 1 ) == 1  ) ? "X" : "O";
+            const gameId = uuidv4();
+            const playerSymbol = Math.random() < 0.5 ? 'X' : 'O';
 
-            actualPlayer = ( ( Math.floor( Math.random()*2 ) + 1 ) == 1  ) ? "X" : "O";
+            games[gameId] = {
+                board: createEmptyBoard(),
+                currentPlayer: Math.random() < 0.5 ? 'X' : 'O',
+                players: [{ ws, symbol: playerSymbol }]
+            }
 
-            for(i=0; i<9; i++) { board.get(i).content = null; }
-
-            ws.send(JSON.stringify({ type:"createGameResponse", actualPlayer: actualPlayer, board:Object.fromEntries(board), myPlayer: player1 }));
+            ws.send(JSON.stringify({ 
+                type:"createGameResponse", 
+                gameId, 
+                board:Object.fromEntries(games[gameId].board), 
+                myPlayerSymbol: playerSymbol, 
+                currentPlayer:games[gameId].currentPlayer 
+            }));
 
             console.log("ws:createGame - SUCCESS");
 
         } else if (data.type === "joinGame") {
 
-            const player2 = (player1 == "X" ? "O" : "X");
+            const { gameId } = data;
+            const game = games[gameId];
 
-            ws.send(JSON.stringify({ type:"joinGameResponse", actualPlayer: actualPlayer, board:Object.fromEntries(board), myPlayer: player2 }));
+            if (!game || game.players.lenght >= 2) {
+                console.log("ERRO DE SALA");
+                return ws.send( JSON.stringify({ type: "error", message: "Sala inválida ou cheia." }));
+            }
+
+            const playerSymbol = game.players[0].symbol === 'X' ? 'O' : 'X';
+
+            game.players.push({ ws, symbol: playerSymbol });
+
+            ws.send(JSON.stringify({
+                type: "joinGameResponse",
+                gameId,
+                myPlayerSymbol: playerSymbol,
+                board: Object.fromEntries(game.board),
+                currentPlayer: game.currentPlayer
+            }));
 
             console.log("ws:joinGame - SUCCESS");
 
         } else if (data.type === "doRound") {
 
-            const target = data.target;
-            let isWin = false;
+            const { gameId, target } = data;
+            const game = games[gameId];
+            if (!game) return;
 
-            board.get(target).content = actualPlayer;
+            game.board.get(target).content = game.currentPlayer;
 
-            console.log(actualPlayer + " marcou " + target);
+            const isWin = verifyWin(game.board, target);
+            if (!isWin) game.currentPlayer = switchPlayer(game.currentPlayer);
 
-            verifyWin(target) ? isWin = true : switchPlayer();
-
-            wss.clients.forEach( (client) => {
-                if ( client.readyState === WebSocket.OPEN ) {
-                    client.send(JSON.stringify({ type: "doRoundResponse", actualPlayer: actualPlayer, board: Object.fromEntries(board), isWin: isWin }));
-                }
-            });
+            for (const player of game.players) {
+                player.ws.send(JSON.stringify({
+                    type: "doRoundResponse",
+                    board: Object.fromEntries(game.board),
+                    currentPlayer: game.currentPlayer,
+                    isWin
+                }));
+            }
 
             console.log("ws:doRound - SUCCESS");
 
