@@ -3,7 +3,6 @@ const cors = require('cors');
 const http = require('http');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require("uuid");
-const { create } = require('domain');
 
 const app = express();
 const server = http.createServer(app);
@@ -172,6 +171,10 @@ wss.on("connection", (ws) => {
                     currentPlayer: game.currentPlayer,
                     isWin
                 }));
+            }
+
+            if (isWin) {
+                delete games[gameId];
             }
 
             console.log("ws:doRound - SUCCESS");

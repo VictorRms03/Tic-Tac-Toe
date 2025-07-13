@@ -1,13 +1,5 @@
 import type { Metadata } from "next";
-import { Barriecito } from "next/font/google";
 import "./globals.css";
-
-const barriecito = Barriecito({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-barriecito',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body  > {/*className={ barriecito.variable }*/}
+      <body>
         {children}
       </body>
     </html>

@@ -1,1 +1,1 @@
-- Frontend
+- Evitar requisição de sala quando não inserir ID
