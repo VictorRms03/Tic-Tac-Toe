@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Navbar from "@/components/Navbar";
+import Game from "@/components/Game";
+import Footer from "@/components/Footer";
 
 export default function Home() {
 
@@ -71,7 +74,12 @@ export default function Home() {
   function renderButton(id: number) {
 
     return (
-      <button id={id.toString()} onClick={() => doRound(id)} disabled={ ( board.get(id)?.content || currentPlayer !== myPlayerSymbol ) }>
+      <button 
+        id={id.toString()} 
+        onClick={() => doRound(id)} 
+        disabled={ ( board.get(id)?.content || currentPlayer !== myPlayerSymbol ) }
+        className="w-34 h-34 xl:w-44 xl:h-44 bg-white rounded shadow border-3 border-black group"
+        >
         {board.get(id)?.content || ' '}
       </button>
     );
@@ -86,32 +94,11 @@ export default function Home() {
     
     <>
 
-    <h2>Jogador: {currentPlayer}</h2>
+      <Navbar />
+      <Game />
+      <Footer />
 
-    <h2>Eu sou: {myPlayerSymbol}</h2>
-
-    <h2>ID do jogo: {gameId}</h2>
-
-    <button onClick={createGame}>Criar Jogo</button>
-
-    <br />
-
-    <form onSubmit={joinGame}>
-      <input
-        type="text"
-        name="gameId"
-        id="gameId"
-        onChange={(e) => setGameId(e.target.value)}
-      />
-      <button type="submit">Entrar no jogo</button>
-    </form>
-
-    {/*<input type="text" name="gameId" id="gameId" /> <button onClick={joinGame}>Entrar no jogo</button>*/}
-
-    <div>{ renderButton(0) } { renderButton(1) } { renderButton(2) }</div>
-    <div>{ renderButton(3) } { renderButton(4) } { renderButton(5) }</div>
-    <div>{ renderButton(6) } { renderButton(7) } { renderButton(8) }</div>
-      
     </>
+
   );
 }
