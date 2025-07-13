@@ -1,6 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
+const WebSocket = require('ws');
+
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
 const PORT = 3001;
 
 app.use(cors());
@@ -24,61 +30,7 @@ function switchPlayer() {
     actualPlayer = (actualPlayer === 'X' ? 'O' : 'X');
 }
 
-app.get('/api/createGame', (req, res) => {
-
-    player1 = ( ( Math.floor( Math.random()*2 ) + 1 ) == 1  ) ? "X" : "O";
-
-    actualPlayer = ( ( Math.floor( Math.random()*2 ) + 1 ) == 1  ) ? "X" : "O";
-
-    for(i=0; i<9; i++){
-        board.get(i).content = null;
-    }
-
-    res.json({ actualPlayer: actualPlayer, board:Object.fromEntries(board), myPlayer: player1 });
-
-    console.log("/api/createGame - SUCCESS");
-
-});
-
-app.get('/api/joinGame', (req, res) => {
-
-    const player2 = (player1 == "X" ? "O" : "X");
-
-    res.json({ actualPlayer: actualPlayer, board:Object.fromEntries(board), myPlayer: player2 });
-
-    console.log("/api/joinGame - SUCCESS");
-
-});
-
-app.post('/api/doRound', (req, res) => {
-
-    const { target } = req.body;
-
-    board.get(target).content = actualPlayer;
-
-    console.log(actualPlayer + " marcou " + target);
-
-    if ( isWin(target) ) {
-
-        res.json({ actualPlayer: actualPlayer, board:Object.fromEntries(board), isWin:true });
-
-    } else {
-
-        switchPlayer();
-    
-        res.json({ actualPlayer: actualPlayer, board:Object.fromEntries(board), isWin:false });
-
-    }
-
-    console.log("/api/doRound - SUCCESS");
-
-});
-
-app.listen(PORT, () => {
-  console.log(`🔙 Servidor Express rodando em http://localhost:${PORT}`);
-});
-
-function isWin( idLastTarget ) {
+function verifyWin( idLastTarget ) {
 
     const cell = board.get(idLastTarget);
     let isWin = false
@@ -145,6 +97,54 @@ function isWin( idLastTarget ) {
 
 }
 
-// 0 1 2
-// 3 4 5
-// 6 7 8
+wss.on("connection", (ws) => {
+
+    ws.on("message", (msg) => {
+
+        const data = JSON.parse(msg);
+
+        if ( data.type === "createGame" ) {
+
+            player1 = ( ( Math.floor( Math.random()*2 ) + 1 ) == 1  ) ? "X" : "O";
+
+            actualPlayer = ( ( Math.floor( Math.random()*2 ) + 1 ) == 1  ) ? "X" : "O";
+
+            for(i=0; i<9; i++) { board.get(i).content = null; }
+
+            ws.send(JSON.stringify({ type:"createGameResponse", actualPlayer: actualPlayer, board:Object.fromEntries(board), myPlayer: player1 }));
+
+            console.log("ws:createGame - SUCCESS");
+
+        } else if (data.type === "joinGame") {
+
+            const player2 = (player1 == "X" ? "O" : "X");
+
+            ws.send(JSON.stringify({ type:"joinGameResponse", actualPlayer: actualPlayer, board:Object.fromEntries(board), myPlayer: player2 }));
+
+            console.log("ws:joinGame - SUCCESS");
+
+        } else if (data.type === "doRound") {
+
+            const target = data.target;
+            let isWin = false;
+
+            board.get(target).content = actualPlayer;
+
+            console.log(actualPlayer + " marcou " + target);
+
+            verifyWin(target) ? isWin = true : switchPlayer();
+
+            wss.clients.forEach( (client) => {
+                if ( client.readyState === WebSocket.OPEN ) {
+                    client.send(JSON.stringify({ type: "doRoundResponse", actualPlayer: actualPlayer, board: Object.fromEntries(board), isWin: isWin }));
+                }
+            });
+
+            console.log("ws:doRound - SUCCESS");
+
+        }
+    });
+
+});
+
+server.listen(PORT, () => console.log("Servidor rodando em http://localhost:"+PORT) );

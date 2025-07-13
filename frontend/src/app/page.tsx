@@ -8,52 +8,54 @@ export default function Home() {
   const [actualPlayer, setActualPlayer] = useState(null);
   const [myPlayer, setMyPlayer] = useState(null);
 
-  async function createGame() {
+  const socket = new WebSocket("ws://localhost:3001");
 
-    const res = await fetch('http://localhost:3001/api/createGame', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+  socket.onmessage = (event) => {
 
-    const data = await res.json();
-    setBoard(new Map(Object.entries(data.board)));
-    setActualPlayer(data.actualPlayer);
-    setMyPlayer(data.myPlayer);
+    const data = JSON.parse(event.data);
 
-  }
+    if (data.type === "createGameResponse") {
 
-  async function joinGame() {
+      setBoard(new Map(Object.entries(data.board)));
+      setActualPlayer(data.actualPlayer);
+      setMyPlayer(data.myPlayer);
 
-    const res = await fetch('http://localhost:3001/api/joinGame', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    } else if (data.type === "joinGameResponse") {
 
-    const data = await res.json();
-    setBoard(new Map(Object.entries(data.board)));
-    setActualPlayer(data.actualPlayer);
-    setMyPlayer(data.myPlayer);
+      setBoard(new Map(Object.entries(data.board)));
+      setActualPlayer(data.actualPlayer);
+      setMyPlayer(data.myPlayer);
 
-  }
+    } if (data.type === "doRoundResponse") {
 
-  async function doRound(idTarget:number) {
+      const updatedBoard = new Map( Object.entries(data.board).map( ([id, content]) => [Number(id), content] ) );
 
-    const res = await fetch('http://localhost:3001/api/doRound', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ target:idTarget }),
-    });
-    
-    const data = await res.json();
-    const updatedBoard = new Map( Object.entries(data.board).map( ([id, content]) => [Number(id), content] ) );
+      setBoard(updatedBoard);
+      setActualPlayer(data.actualPlayer);
 
-    setBoard(updatedBoard);
-    setActualPlayer(data.actualPlayer);
+      data.isWin && finishGame();
 
-    if (data.isWin) {
-      finishGame;
     }
 
+  };
+
+  function createGame() {
+    socket.send( JSON.stringify( {
+      type:"createGame",
+    }));
+  }
+
+  function joinGame() {
+    socket.send( JSON.stringify( {
+      type:"joinGame",
+    }));
+  }
+
+  function doRound(idTarget:number) {
+    socket.send( JSON.stringify( {
+      type:"doRound",
+      target:idTarget
+    }));
   }
 
   function renderButton(id: number) {

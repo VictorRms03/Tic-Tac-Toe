@@ -1,3 +1,3 @@
-- Detectar se ganhou
 - Ficar tentando atualizar
+- Suportar multiplos jogos
 - Frontend
