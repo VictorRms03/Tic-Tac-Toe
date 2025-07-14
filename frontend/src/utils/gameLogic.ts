@@ -1,4 +1,4 @@
-const socket = new WebSocket("ws://localhost:3001");
+const socket = new WebSocket("wss://tic-tac-toe-backend-ikzb.onrender.com");
 
 export function getWebSocket() {
     return socket;

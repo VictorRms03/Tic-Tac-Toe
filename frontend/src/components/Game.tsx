@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { getWebSocket, createGame, joinGame, doRound } from "@/utils/gameLogic";
+import { getWebSocket, doRound } from "@/utils/gameLogic";
 
 export default function Game() {
 
-    const [board, setBoard] = useState<any>(new Map());
+    type CellBoardMap = {
+        content: string | null;
+    }
+
+    const [board, setBoard] = useState<Map<number, CellBoardMap>>(new Map());
     const [currentPlayer, setCurrentPlayer] = useState(null);
     const [myPlayerSymbol, setMyPlayerSymbol] = useState(null);
     const [gameId, setGameId] = useState<string>('');
@@ -16,14 +20,20 @@ export default function Game() {
 
         if (data.type === "createGameResponse") {
 
+            const updatedBoard = new Map<number, CellBoardMap>( 
+                Object.entries(data.board).map( ([id, cell]) => [Number(id), cell as CellBoardMap] ) 
+            );
+
             setGameId(data.gameId);
             setMyPlayerSymbol(data.myPlayerSymbol);
             setCurrentPlayer(data.currentPlayer);
-            setBoard(new Map(Object.entries(data.board)));
+            setBoard(updatedBoard);
 
         } else if (data.type === "joinGameResponse") {
 
-            const updatedBoard = new Map( Object.entries(data.board).map( ([id, content]) => [Number(id), content] ) );
+            const updatedBoard = new Map<number, CellBoardMap>( 
+                Object.entries(data.board).map( ([id, cell]) => [Number(id), cell as CellBoardMap] ) 
+            );
 
             setGameId(data.gameId);
             setMyPlayerSymbol(data.myPlayerSymbol);
@@ -32,11 +42,14 @@ export default function Game() {
             
         } if (data.type === "doRoundResponse") {
 
-            const updatedBoard = new Map( Object.entries(data.board).map( ([id, content]) => [Number(id), content] ) );
+            const updatedBoard = new Map<number, CellBoardMap>( 
+                Object.entries(data.board).map( ([id, cell]) => [Number(id), cell as CellBoardMap] ) 
+            );
 
             setCurrentPlayer(data.currentPlayer);
             setBoard(updatedBoard);
-            data.isWin && finishGame();
+            
+            if (data.isWin){ finishGame() }
 
         }
 
@@ -60,7 +73,7 @@ export default function Game() {
         return (
             <button id={id.toString()} 
                 onClick={() => doRound(id, gameId)} 
-                disabled={ ( board.get(id)?.content || currentPlayer !== myPlayerSymbol ) }
+                disabled={ ( board.get(id)?.content !== null || currentPlayer !== myPlayerSymbol ) }
                 className="w-34 h-34 xl:w-44 xl:h-44 bg-white shadow border-3 border-black group">
 
                 <span className='text-9xl'> { board.get(id)?.content || ' ' } </span>
