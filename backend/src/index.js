@@ -10,7 +10,13 @@ const wss = new WebSocket.Server({ server });
 
 const PORT = 3001;
 
-app.use(cors());
+/*const corsOptions = {
+  origin: 'https://meujogo.vercel.app',
+  methods: ['GET', 'POST'],
+  credentials: true
+};*/
+
+app.use( cors(/*corsOptions*/) );
 app.use(express.json());
 
 const games = {};
@@ -134,7 +140,7 @@ wss.on("connection", (ws) => {
             const { gameId } = data;
             const game = games[gameId];
 
-            if (!game || game.players.lenght >= 2) {
+            if (!game || game.players.length >= 2) {
                 console.log("ERRO DE SALA");
                 return ws.send( JSON.stringify({ type: "error", message: "Sala inválida ou cheia." }));
             }
