@@ -49,7 +49,7 @@ export default function Game() {
             setCurrentPlayer(data.currentPlayer);
             setBoard(updatedBoard);
             
-            if (data.isWin){ finishGame() }
+            if ( data.condition === "win" || data.condition === "draw" ){ finishGame(data.condition) }
 
         }
 
@@ -83,8 +83,14 @@ export default function Game() {
 
     }
 
-    function finishGame() {
-        window.alert( "Parabêns, " + currentPlayer + " Ganhou!");
+    function finishGame(condition: string) {
+
+        if (condition === "win"){
+            window.alert( "Parabêns, " + currentPlayer + " Ganhou!");
+        } else if (condition === "draw") {
+            window.alert( "Empate!");
+        }
+
     }
 
     return(

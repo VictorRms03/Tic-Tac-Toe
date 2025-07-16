@@ -108,6 +108,18 @@ function verifyWin( board, idLastTarget ) {
 
 }
 
+function verifyDraw( board ) {
+
+    for( let i=0; i<9; i++){
+        if ( board.get(i).content === null ) {
+            return false;
+        }
+    }
+
+    return true;
+
+}
+
 wss.on("connection", (ws) => {
 
     ws.on("message", (msg) => {
@@ -168,6 +180,15 @@ wss.on("connection", (ws) => {
             game.board.get(target).content = game.currentPlayer;
 
             const isWin = verifyWin(game.board, target);
+            const isDraw = verifyDraw(game.board);
+
+            let condition = "running";
+            if (isWin) {
+                condition = "win";
+            } else if (isDraw) {
+                condition = "draw";
+            }
+
             if (!isWin) game.currentPlayer = switchPlayer(game.currentPlayer);
 
             for (const player of game.players) {
@@ -175,11 +196,11 @@ wss.on("connection", (ws) => {
                     type: "doRoundResponse",
                     board: Object.fromEntries(game.board),
                     currentPlayer: game.currentPlayer,
-                    isWin
+                    condition: condition
                 }));
             }
 
-            if (isWin) {
+            if (isWin || isDraw) {
                 delete games[gameId];
             }
 

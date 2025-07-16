@@ -1,1 +1,3 @@
 - Evitar requisição de sala quando não inserir ID
+- Tratar erro quando não encontrar sala
+- Versão Mobile
