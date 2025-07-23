@@ -152,24 +152,42 @@ wss.on("connection", (ws) => {
             const { gameId } = data;
             const game = games[gameId];
 
-            if (!game || game.players.length >= 2) {
-                console.log("ERRO DE SALA");
-                return ws.send( JSON.stringify({ type: "error", message: "Sala inválida ou cheia." }));
+            if (!game ) {
+
+                ws.send( JSON.stringify({ 
+                    type: "joinGameResponse",
+                    status: "lobbyNotFound"
+                }));
+
+                console.log("ws:joinGame - SUCCESS - Sala Não Encontrada");
+
+            } else if ( game.players.length >= 2 ) { 
+
+                ws.send( JSON.stringify({ 
+                    type: "joinGameResponse", 
+                    status: "lobbyFull" 
+                }));
+
+                console.log("ws:joinGame - SUCCESS - Sala Cheia");
+
+            } else {
+
+                const playerSymbol = game.players[0].symbol === 'X' ? 'O' : 'X';
+
+                game.players.push({ ws, symbol: playerSymbol });
+
+                ws.send( JSON.stringify({
+                    type: "joinGameResponse",
+                    gameId,
+                    myPlayerSymbol: playerSymbol,
+                    board: Object.fromEntries(game.board),
+                    currentPlayer: game.currentPlayer,
+                    status: "lobbyFound"
+                }));
+
             }
 
-            const playerSymbol = game.players[0].symbol === 'X' ? 'O' : 'X';
-
-            game.players.push({ ws, symbol: playerSymbol });
-
-            ws.send(JSON.stringify({
-                type: "joinGameResponse",
-                gameId,
-                myPlayerSymbol: playerSymbol,
-                board: Object.fromEntries(game.board),
-                currentPlayer: game.currentPlayer
-            }));
-
-            console.log("ws:joinGame - SUCCESS");
+            console.log("ws:joinGame - SUCCESS - Sala Encontrada");
 
         } else if (data.type === "doRound") {
 

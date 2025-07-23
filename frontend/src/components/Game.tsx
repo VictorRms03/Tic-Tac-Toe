@@ -31,14 +31,24 @@ export default function Game() {
 
         } else if (data.type === "joinGameResponse") {
 
-            const updatedBoard = new Map<number, CellBoardMap>( 
-                Object.entries(data.board).map( ([id, cell]) => [Number(id), cell as CellBoardMap] ) 
-            );
+            if( data.status === "lobbyFound" ) {
 
-            setGameId(data.gameId);
-            setMyPlayerSymbol(data.myPlayerSymbol);
-            setCurrentPlayer(data.currentPlayer);
-            setBoard(updatedBoard);
+                console.log("Encontrou o Lobby Vazio!");
+
+                const updatedBoard = new Map<number, CellBoardMap>( 
+                Object.entries(data.board).map( ([id, cell]) => [Number(id), cell as CellBoardMap] ) );
+
+                setGameId(data.gameId);
+                setMyPlayerSymbol(data.myPlayerSymbol);
+                setCurrentPlayer(data.currentPlayer);
+                setBoard(updatedBoard);
+                
+            } else {
+
+                console.log("Erro no Lobby: " + data.status);
+                notify(data.status);
+
+            }
             
         } if (data.type === "doRoundResponse") {
 
@@ -49,7 +59,7 @@ export default function Game() {
             setCurrentPlayer(data.currentPlayer);
             setBoard(updatedBoard);
             
-            if ( data.condition === "win" || data.condition === "draw" ){ finishGame(data.condition) }
+            if ( data.condition === "win" || data.condition === "draw" ){ notify(data.condition) }
 
         }
 
@@ -83,12 +93,31 @@ export default function Game() {
 
     }
 
-    function finishGame(condition: string) {
+    function notify(condition: string) {
 
         if (condition === "win"){
             window.alert( "Parabêns, " + currentPlayer + " Ganhou!");
         } else if (condition === "draw") {
             window.alert( "Empate!");
+        }
+
+        switch (condition) {
+
+            case "win":
+                window.alert( "Parabêns, " + currentPlayer + " Ganhou!");
+                break;
+            case "draw":
+                window.alert( "Empate!");
+                break;
+            case "lobbyFull":
+                window.alert( "A sala está cheia!" );
+                break;
+            case "lobbyNotFound":
+                window.alert( "Sala não encontrada!" );
+                break;
+            default:
+                break;
+
         }
 
     }
