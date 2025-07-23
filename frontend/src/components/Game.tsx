@@ -95,12 +95,6 @@ export default function Game() {
 
     function notify(condition: string) {
 
-        if (condition === "win"){
-            window.alert( "Parabêns, " + currentPlayer + " Ganhou!");
-        } else if (condition === "draw") {
-            window.alert( "Empate!");
-        }
-
         switch (condition) {
 
             case "win":

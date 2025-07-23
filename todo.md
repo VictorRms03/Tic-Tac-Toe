@@ -1,3 +1,2 @@
 - Possibilidade de ficar usando a mesma sala;
-- Quando está em uma sala e clica em 'entrar em sala', não quebra a sala que ele está, só não faz nada se ele não achar a sala;
-- Versão Mobile.
+- Versão Mobile e Melhorar Frontend
