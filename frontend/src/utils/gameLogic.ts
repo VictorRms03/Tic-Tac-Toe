@@ -14,10 +14,18 @@ export function joinGame( e:React.FormEvent<HTMLFormElement>, gameId:string ) {
 
     e.preventDefault();
 
-    socket.send( JSON.stringify( {
-        type:"joinGame",
-        gameId:gameId
-    }));
+    if (gameId) {
+
+        console.log("Fez a requisição");
+
+        socket.send( JSON.stringify( {
+            type:"joinGame",
+            gameId:gameId
+        }));
+
+    } else {
+        console.log("Não fez a requisição");
+    }
 
 }
 

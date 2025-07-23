@@ -1,4 +1,4 @@
-- Evitar requisição de sala quando não inserir ID
-- Tratar erro quando não encontrar sala e quando sala estiver cheia
-- Possibilidade de ficar usando a mesma sala
-- Versão Mobile
+- Tratar erro quando não encontrar sala e quando sala estiver cheia;
+- Possibilidade de ficar usando a mesma sala;
+- Quando está em uma sala e clica em 'entrar em sala', não quebra a sala que ele está, só não faz nada se ele não achar a sala;
+- Versão Mobile.
