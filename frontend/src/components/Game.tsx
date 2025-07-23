@@ -84,7 +84,7 @@ export default function Game() {
             <button id={id.toString()} 
                 onClick={() => doRound(id, gameId)} 
                 disabled={ ( board.get(id)?.content !== null || currentPlayer !== myPlayerSymbol ) }
-                className="w-34 h-34 xl:w-44 xl:h-44 bg-white shadow border-3 border-black group">
+                className="w-26 h-26 sm:w-44 sm:h-44 bg-white shadow border-3 border-black group">
 
                 <span className='text-9xl'> { board.get(id)?.content || ' ' } </span>
                 
@@ -122,9 +122,9 @@ export default function Game() {
 
             <div className='flex flex-col items-center gap-3'>
 
-                <div className='flex flex-row gap-20'>
+                <div className='flex flex-row gap-10 sm:gap-20'>
 
-                    <div className="bg-white border border-black border-3 py-2 rounded flex justify-center items-center gap-2 w-40 h-13">
+                    <div className="bg-white border border-black border-3 py-2 rounded flex justify-center items-center gap-2 w-30 sm:w-40 h-13">
                         <span className="font-bold text-xl"> Você: {myPlayerSymbol} </span>
                     </div>
 
@@ -140,7 +140,9 @@ export default function Game() {
 
             </div>
 
-            { renderBoard() }
+            <div>
+                { renderBoard() }
+            </div>
 
             <h2 className='text-xl'> ID do jogo: {gameId} </h2>
         

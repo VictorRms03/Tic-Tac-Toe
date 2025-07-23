@@ -1,2 +1,2 @@
 - Possibilidade de ficar usando a mesma sala;
-- Versão Mobile e Melhorar Frontend
+- Melhorar Frontend
