@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { getWebSocket, doRound } from "@/utils/gameLogic";
 
+/**
+ * Gera a seção principal do jogo Tic Tac Toe: Online
+ * @returns Seção Principal do jogo
+ */
 export default function Game() {
 
     type CellBoardMap = {
@@ -12,12 +16,19 @@ export default function Game() {
     const [myPlayerSymbol, setMyPlayerSymbol] = useState(null);
     const [gameId, setGameId] = useState<string>('');
 
-    const socket = getWebSocket();
+    const socket = getWebSocket(); // Socket utilizado para comunicação em tempo real do jogo
 
+    /**
+     * Receptor de mensagens do backend para funcionamento do jogo em tempo real
+     * @param event Mensagem
+     */
     socket.onmessage = (event) => {
 
-        const data = JSON.parse(event.data);
+        const data = JSON.parse(event.data); // Dados da mensagem recebida
 
+        /**
+         * Resposta para requisição de Criação de Jogo
+         */
         if (data.type === "createGameResponse") {
 
             const updatedBoard = new Map<number, CellBoardMap>( 
@@ -29,6 +40,9 @@ export default function Game() {
             setCurrentPlayer(data.currentPlayer);
             setBoard(updatedBoard);
 
+        /**
+         * Resposta para requisição de Entrar em Jogo
+         */
         } else if (data.type === "joinGameResponse") {
 
             if( data.status === "lobbyFound" ) {
@@ -49,7 +63,10 @@ export default function Game() {
                 notify(data.status);
 
             }
-            
+        
+        /**
+         * Resposta para requisição Jogada Feita
+         */
         } if (data.type === "doRoundResponse") {
 
             const updatedBoard = new Map<number, CellBoardMap>( 
@@ -65,6 +82,10 @@ export default function Game() {
 
     };
 
+    /**
+     * Gera o tabuleiro
+     * @returns Tabuleiro
+     */
     function renderBoard() {
 
         return (
@@ -78,6 +99,11 @@ export default function Game() {
 
     }
 
+    /**
+     * Gera um botão do tabuleiro
+     * @param id ID do botão a ser gerado
+     * @returns Botão
+     */
     function renderButton(id: number) {
 
         return (
@@ -93,6 +119,10 @@ export default function Game() {
 
     }
 
+    /**
+     * Gera uma notificação na tela
+     * @param condition Condição da notificação a ser gerada
+     */
     function notify(condition: string) {
 
         switch (condition) {
@@ -100,22 +130,25 @@ export default function Game() {
             case "win":
                 window.alert( "Parabêns, " + currentPlayer + " Ganhou!");
                 break;
+
             case "draw":
                 window.alert( "Empate!");
                 break;
+
             case "lobbyFull":
                 window.alert( "A sala está cheia!" );
                 break;
+
             case "lobbyNotFound":
                 window.alert( "Sala não encontrada!" );
                 break;
+
             default:
                 break;
 
         }
 
     }
-
     return(
 
         <main className='flex flex-col items-center gap-8 my-8'>

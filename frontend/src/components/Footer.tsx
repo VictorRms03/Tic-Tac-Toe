@@ -1,5 +1,9 @@
 import Link from 'next/link';
 
+/**
+ * Gera a seção de rodapé do jogo Tic Tac Toe: Online
+ * @returns Seção de Rodapé do jogo
+ */
 export default function Footer() {
     return (
         <footer className="w-full px-6 py-4 shadow-lg sticky top-0 z-50">

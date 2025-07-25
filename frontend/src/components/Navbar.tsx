@@ -1,6 +1,10 @@
 import { createGame, joinGame } from "@/utils/gameLogic";
 import { useState } from 'react';
 
+/**
+ * Gera a seção de navegação do jogo Tic Tac Toe: Online
+ * @returns Seção de Navegação do jogo
+ */
 export default function Navbar() {
     
     const [gameId, setGameId] = useState<string>('');

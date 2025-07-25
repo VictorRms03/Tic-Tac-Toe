@@ -19,8 +19,12 @@ const PORT = 3001;
 app.use( cors(/*corsOptions*/) );
 app.use(express.json());
 
-const games = {};
+const games = {}; // Lista dos jogos em andamento
 
+/**
+ * Cria um tabuleiro vazio
+ * @returns Tabuleiro Vazio
+ */
 function createEmptyBoard() {
 
     return new Map([
@@ -36,10 +40,21 @@ function createEmptyBoard() {
     ]);
 }
 
+/**
+ * Troca o jogador atual do jogo
+ * @param currentPlayer Jogador atual
+ * @returns Jogador atual invertido
+ */
 function switchPlayer(currentPlayer) {
     return currentPlayer === 'X' ? 'O' : 'X';
 }
 
+/**
+ * Verifica se algum dos jogadores ganhou
+ * @param board Tabuleiro do jogo
+ * @param idLastTarget Ultima casa preenchida
+ * @returns True caso a ultima jogada tenha causado a vitória
+ */
 function verifyWin( board, idLastTarget ) {
 
     const cell = board.get(idLastTarget);
@@ -108,6 +123,11 @@ function verifyWin( board, idLastTarget ) {
 
 }
 
+/**
+ * Verifica se o jogo empatou
+ * @param board Tabuleiro do jogo
+ * @returns True caso todas as casas tenham sido preenchidas
+ */
 function verifyDraw( board ) {
 
     for( let i=0; i<9; i++){
@@ -120,12 +140,18 @@ function verifyDraw( board ) {
 
 }
 
+/**
+ * Receptor de mensagens do backend para funcionamento do jogo em tempo real
+ */
 wss.on("connection", (ws) => {
 
     ws.on("message", (msg) => {
 
         const data = JSON.parse(msg);
 
+        /**
+         * Resposta para requisição de Criação de Jogo
+         */
         if ( data.type === "createGame" ) {
 
             const gameId = uuidv4();
@@ -147,6 +173,9 @@ wss.on("connection", (ws) => {
 
             console.log("ws:createGame - SUCCESS");
 
+        /**
+         * Resposta para requisição de Entrar em Jogo
+         */
         } else if (data.type === "joinGame") {
 
             const { gameId } = data;
@@ -188,7 +217,10 @@ wss.on("connection", (ws) => {
             }
 
             console.log("ws:joinGame - SUCCESS - Sala Encontrada");
-
+        
+        /**
+         * Resposta para requisição Jogada Feita
+         */
         } else if (data.type === "doRound") {
 
             const { gameId, target } = data;
@@ -229,4 +261,4 @@ wss.on("connection", (ws) => {
 
 });
 
-server.listen(PORT, () => console.log("Servidor rodando em http://localhost:"+PORT) );
+server.listen(PORT, () => console.log("Servidor rodando na porta: "+PORT) );
